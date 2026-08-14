@@ -1,0 +1,15 @@
+# Pareto-DPO — runtime dependencies
+# Tested on Python 3.12, single NVIDIA RTX 5050 (8 GB VRAM), CUDA 13.0.
+# Install PyTorch matching your CUDA from https://pytorch.org/get-started/locally/
+# (the pinned build below targets cu130; swap the index-url/tag for your setup).
+
+torch>=2.6           # BF16 autocast, gradient accumulation; CUDA build recommended
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11          # stats: pearsonr/spearmanr, binomtest, rankdata
+scikit-learn>=1.3    # baseline utilities / metrics
+matplotlib>=3.8      # publication figures (Phase 5)
+
+# Optional (not required to reproduce the reported results):
+# tqdm                # progress bars
+# pyarrow             # parquet I/O (we default to CSV to avoid this dependency)

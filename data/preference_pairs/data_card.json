@@ -1,0 +1,32 @@
+{
+  "source": "pilot",
+  "seed": 42,
+  "max_mm": 3,
+  "ood_chrom": "chr22",
+  "n_guides": 1000,
+  "id_front_size": 3,
+  "objectives": {
+    "s_eff": "CRISPRon (external, 0-100), maximize",
+    "s_off": "-(near-match hits MM<= 3) from whole-genome screen, maximize"
+  },
+  "splits": {
+    "train": {
+      "n_pairs": 9845,
+      "n_unique_winners": 843,
+      "mean_margin": 0.020644808748857938,
+      "file": "data/preference_pairs/train.csv"
+    },
+    "val": {
+      "n_pairs": 1497,
+      "n_unique_winners": 144,
+      "mean_margin": 0.08080584496103468,
+      "file": "data/preference_pairs/val.csv"
+    },
+    "ood": {
+      "n_pairs": 11720,
+      "n_unique_winners": 994,
+      "mean_margin": 0.009211863324751554,
+      "file": "data/preference_pairs/ood.csv"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pareto-DPO</title>
+<meta name="description" content="Scalarization-free multi-objective preference alignment for generative genomic sequence design (standard DPO over Pareto-dominance preferences).">
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--fg:#e6edf3;--muted:#9198a1;--accent:#7ee787;--border:#30363d;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#ffffff;--card:#f6f8fa;--fg:#1f2328;--muted:#59636e;--accent:#1a7f37;--border:#d0d7de;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:3rem 1.25rem 4rem}
+  h1{font-size:2.4rem;margin:.2rem 0 .3rem;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:1.1rem;margin:0 0 1.4rem}
+  .badges span{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:.15rem .7rem;margin:.15rem .3rem .15rem 0;font-size:.8rem;color:var(--muted)}
+  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.9rem 1.1rem;margin:1.6rem 0;color:var(--muted)}
+  h2{margin-top:2.2rem;font-size:1.3rem;border-bottom:1px solid var(--border);padding-bottom:.35rem}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow:auto;font-size:.9rem}
+  ul{padding-left:1.2rem}
+  a.btn{display:inline-block;background:var(--accent);color:#0d1117;font-weight:600;text-decoration:none;border-radius:8px;padding:.6rem 1.1rem;margin-top:.6rem}
+  a{color:var(--accent)}
+  footer{margin-top:3rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--border);padding-top:1rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pareto-DPO</h1>
+  <p class="sub">Scalarization-free multi-objective preference alignment for generative genomic sequence design.</p>
+  <div class="badges">
+    <span>Python 3.10+</span><span>PyTorch</span><span>MIT License</span><span>&lt; 0.6 GB VRAM</span><span>Reproducible pipeline</span>
+  </div>
+
+  <div class="note">
+    <strong>Manuscript withheld pending publication.</strong> This site and repository contain only the
+    software implementation. The paper, its figures, numerical results, and reviewer correspondence
+    are intentionally not published here yet.
+  </div>
+
+  <h2>What it does</h2>
+  <p>
+    Pareto-DPO aligns a generative nucleotide-sequence model to <em>multiple</em> competing objectives
+    (for example, on-target efficacy and off-target suppression in CRISPR sgRNA design) <strong>without
+    scalarization</strong>. The optimiser is standard Direct Preference Optimization; the contribution
+    is <em>how the preferences are built</em>:
+  </p>
+  <ul>
+    <li>Score candidate sequences on each objective with <strong>external</strong> oracles.</li>
+    <li>Keep a preference pair only when one candidate <strong>Pareto-dominates</strong> the other;
+        exclude mutually incomparable candidates.</li>
+    <li>Train with <strong>standard DPO</strong> on that preference set — no objective weighting anywhere.</li>
+  </ul>
+  <p>The whole pipeline is engineered to run on a single 8&nbsp;GB consumer GPU (&lt;&nbsp;0.6&nbsp;GB peak VRAM).</p>
+
+  <h2>Get started</h2>
+  <pre><code>git clone https://github.com/malekpouri/pareto-dpo &amp;&amp; cd pareto-dpo
+python -m venv venv &amp;&amp; source venv/bin/activate
+pip install -r requirements.txt
+bash reproduce.sh</code></pre>
+  <a class="btn" href="https://github.com/malekpouri/pareto-dpo">View the code on GitHub →</a>
+
+  <footer>
+    Released under the MIT License. Manuscript in preparation — citation to follow after publication.
+  </footer>
+</div>
+</body>
+</html>

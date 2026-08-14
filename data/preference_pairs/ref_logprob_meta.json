@@ -1,0 +1,30 @@
+{
+  "model_params": 1785792,
+  "device": "cuda",
+  "checkpoint": "ParetoDPO_Genomics/models/checkpoints/sft_ref_base.pt",
+  "batch": 1024,
+  "bf16": true,
+  "splits": {
+    "train": {
+      "n_pairs": 9845,
+      "ref_logp_w_mean": -25.383435618689727,
+      "ref_logp_l_mean": -24.516716685375023,
+      "out": "data/preference_pairs/train_ref.csv"
+    },
+    "val": {
+      "n_pairs": 1497,
+      "ref_logp_w_mean": -25.340525250635547,
+      "ref_logp_l_mean": -23.8088909574724,
+      "out": "data/preference_pairs/val_ref.csv"
+    },
+    "ood": {
+      "n_pairs": 11720,
+      "ref_logp_w_mean": -25.330873935946833,
+      "ref_logp_l_mean": -25.19908508538386,
+      "out": "data/preference_pairs/ood_ref.csv"
+    }
+  },
+  "wall_seconds": 1.68,
+  "peak_cpu_rss_mb": 1332.9,
+  "peak_vram_mb": 175.1
+}
