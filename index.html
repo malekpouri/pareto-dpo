@@ -4,66 +4,163 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pareto-DPO</title>
-<meta name="description" content="Scalarization-free multi-objective preference alignment for generative genomic sequence design (standard DPO over Pareto-dominance preferences).">
+<meta name="description" content="Scalarization-free multi-objective preference alignment for generative genomic sequence design — standard DPO over Pareto-dominance preferences.">
 <style>
-  :root{--bg:#0d1117;--card:#161b22;--fg:#e6edf3;--muted:#9198a1;--accent:#7ee787;--border:#30363d;}
+  :root{
+    --bg:#0d1117; --bg2:#0b0f14; --card:#161b22; --fg:#e6edf3; --muted:#9198a1;
+    --accent:#7ee787; --accent2:#58a6ff; --dom:#484f58; --border:#30363d; --code:#0b1020;
+  }
   @media (prefers-color-scheme: light){
-    :root{--bg:#ffffff;--card:#f6f8fa;--fg:#1f2328;--muted:#59636e;--accent:#1a7f37;--border:#d0d7de;}
+    :root{
+      --bg:#ffffff; --bg2:#f4f7fb; --card:#f6f8fa; --fg:#1f2328; --muted:#59636e;
+      --accent:#1a7f37; --accent2:#0969da; --dom:#c2c9d1; --border:#d0d7de; --code:#0b1020;
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-  .wrap{max-width:820px;margin:0 auto;padding:3rem 1.25rem 4rem}
-  h1{font-size:2.4rem;margin:.2rem 0 .3rem;letter-spacing:-.02em}
-  .sub{color:var(--muted);font-size:1.1rem;margin:0 0 1.4rem}
-  .badges span{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:.15rem .7rem;margin:.15rem .3rem .15rem 0;font-size:.8rem;color:var(--muted)}
-  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.9rem 1.1rem;margin:1.6rem 0;color:var(--muted)}
-  h2{margin-top:2.2rem;font-size:1.3rem;border-bottom:1px solid var(--border);padding-bottom:.35rem}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:linear-gradient(180deg,var(--bg2),var(--bg) 340px);color:var(--fg);
+       font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:2.6rem 1.25rem 4rem}
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:2rem;align-items:center}
+  @media (max-width:720px){.hero{grid-template-columns:1fr;gap:1.2rem}}
+  h1{font-size:2.7rem;line-height:1.05;margin:.2rem 0 .5rem;letter-spacing:-.03em}
+  h1 .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:1.12rem;margin:0 0 1.1rem}
+  .badges span{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:.15rem .7rem;
+       margin:.15rem .3rem .15rem 0;font-size:.78rem;color:var(--muted);background:var(--card)}
+  .cta{margin-top:1.1rem}
+  a.btn{display:inline-block;background:var(--accent);color:#08130a;font-weight:650;text-decoration:none;
+       border-radius:9px;padding:.62rem 1.15rem;margin:.3rem .5rem .3rem 0}
+  a.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--border)}
+  .figure{width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--card);padding:.6rem}
+  .cap{color:var(--muted);font-size:.78rem;text-align:center;margin:.4rem 0 0}
+  /* svg element styling (theme-aware) */
+  .axis{stroke:var(--muted);stroke-width:1.4;opacity:.7}
+  .grid{stroke:var(--border);stroke-width:1}
+  .dom{fill:var(--dom)}
+  .front{fill:var(--accent)}
+  .frontline{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4;fill:none;opacity:.9}
+  .axlab{fill:var(--muted);font-size:11px;font-family:inherit}
+  .flab{fill:var(--accent);font-size:11px;font-weight:600;font-family:inherit}
+  .arrow{stroke:var(--accent2);stroke-width:1.8;fill:none;marker-end:url(#ah)}
+  /* notice */
+  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+       border-radius:10px;padding:.9rem 1.1rem;margin:2rem 0;color:var(--muted)}
+  /* sections */
+  h2{margin-top:2.4rem;font-size:1.3rem;border-bottom:1px solid var(--border);padding-bottom:.35rem}
+  ul{padding-left:1.2rem} li{margin:.25rem 0}
   code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow:auto;font-size:.9rem}
-  ul{padding-left:1.2rem}
-  a.btn{display:inline-block;background:var(--accent);color:#0d1117;font-weight:600;text-decoration:none;border-radius:8px;padding:.6rem 1.1rem;margin-top:.6rem}
-  a{color:var(--accent)}
+  pre{background:#0b1020;color:#e6edf3;border:1px solid var(--border);border-radius:10px;padding:1rem;overflow:auto;font-size:.9rem}
+  /* pipeline strip */
+  .pipe{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:1rem 0 .3rem}
+  .step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.55rem .8rem;font-size:.86rem}
+  .step b{color:var(--fg)} .step span{color:var(--muted)}
+  .sep{color:var(--accent);font-weight:700}
+  a{color:var(--accent2)}
   footer{margin-top:3rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--border);padding-top:1rem}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Pareto-DPO</h1>
-  <p class="sub">Scalarization-free multi-objective preference alignment for generative genomic sequence design.</p>
-  <div class="badges">
-    <span>Python 3.10+</span><span>PyTorch</span><span>MIT License</span><span>&lt; 0.6 GB VRAM</span><span>Reproducible pipeline</span>
-  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <h1>Pareto-<span class="grad">DPO</span></h1>
+      <p class="sub">Scalarization-free multi-objective preference alignment for generative genomic sequence design.</p>
+      <div class="badges">
+        <span>Python 3.10+</span><span>PyTorch</span><span>MIT License</span><span>&lt; 0.6 GB VRAM</span><span>Reproducible</span>
+      </div>
+      <div class="cta">
+        <a class="btn" href="https://github.com/malekpouri/pareto-dpo">View on GitHub →</a>
+        <a class="btn alt" href="#start">Quickstart</a>
+      </div>
+    </div>
+
+    <!-- original hero illustration: a Pareto frontier -->
+    <div>
+      <svg class="figure" viewBox="0 0 340 260" role="img" aria-label="Pareto frontier of two competing objectives; non-dominated points define the frontier that feeds preference construction.">
+        <defs>
+          <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--accent2)"/>
+          </marker>
+        </defs>
+        <!-- light grid -->
+        <g class="grid">
+          <line x1="46" y1="60" x2="316" y2="60"/><line x1="46" y1="110" x2="316" y2="110"/>
+          <line x1="46" y1="160" x2="316" y2="160"/><line x1="120" y1="30" x2="120" y2="214"/>
+          <line x1="196" y1="30" x2="196" y2="214"/><line x1="272" y1="30" x2="272" y2="214"/>
+        </g>
+        <!-- axes -->
+        <line class="axis" x1="46" y1="30" x2="46" y2="214"/>
+        <line class="axis" x1="46" y1="214" x2="316" y2="214"/>
+        <text class="axlab" x="181" y="238" text-anchor="middle">on-target efficacy →</text>
+        <text class="axlab" x="16" y="122" text-anchor="middle" transform="rotate(-90 16 122)">off-target suppression →</text>
+        <!-- dominated points -->
+        <g class="dom">
+          <circle cx="86" cy="176" r="4"/><circle cx="120" cy="188" r="4"/><circle cx="104" cy="150" r="4"/>
+          <circle cx="150" cy="182" r="4"/><circle cx="176" cy="160" r="4"/><circle cx="132" cy="140" r="4"/>
+          <circle cx="206" cy="188" r="4"/><circle cx="78" cy="128" r="4"/><circle cx="164" cy="196" r="4"/>
+          <circle cx="230" cy="170" r="4"/>
+        </g>
+        <!-- frontier line + non-dominated points -->
+        <polyline class="frontline" points="70,96 112,110 158,128 214,150 272,182"/>
+        <g class="front">
+          <circle cx="70" cy="96" r="5.5"/><circle cx="112" cy="110" r="5.5"/><circle cx="158" cy="128" r="5.5"/>
+          <circle cx="214" cy="150" r="5.5"/><circle cx="272" cy="182" r="5.5"/>
+        </g>
+        <text class="flab" x="250" y="140" text-anchor="middle">Pareto frontier</text>
+        <!-- "prefer the dominator" arrow: dominated -> non-dominated -->
+        <path class="arrow" d="M150,182 C156,160 156,146 158,132"/>
+      </svg>
+      <p class="cap">Preferences come from <b>dominance</b> (green frontier vs. grey dominated points) — no objective weighting.</p>
+    </div>
+  </section>
 
   <div class="note">
     <strong>Manuscript withheld pending publication.</strong> This site and repository contain only the
-    software implementation. The paper, its figures, numerical results, and reviewer correspondence
-    are intentionally not published here yet.
+    software implementation and reproducible pipeline. The paper, its figures, numerical results, and
+    reviewer correspondence are intentionally not published here yet.
   </div>
 
   <h2>What it does</h2>
   <p>
     Pareto-DPO aligns a generative nucleotide-sequence model to <em>multiple</em> competing objectives
-    (for example, on-target efficacy and off-target suppression in CRISPR sgRNA design) <strong>without
-    scalarization</strong>. The optimiser is standard Direct Preference Optimization; the contribution
-    is <em>how the preferences are built</em>:
+    (for example on-target efficacy and off-target suppression in CRISPR sgRNA design)
+    <strong>without scalarization</strong>. The optimiser is standard Direct Preference Optimization;
+    the contribution is <em>how the preferences are built</em>.
   </p>
-  <ul>
-    <li>Score candidate sequences on each objective with <strong>external</strong> oracles.</li>
-    <li>Keep a preference pair only when one candidate <strong>Pareto-dominates</strong> the other;
-        exclude mutually incomparable candidates.</li>
-    <li>Train with <strong>standard DPO</strong> on that preference set — no objective weighting anywhere.</li>
-  </ul>
-  <p>The whole pipeline is engineered to run on a single 8&nbsp;GB consumer GPU (&lt;&nbsp;0.6&nbsp;GB peak VRAM).</p>
 
-  <h2>Get started</h2>
+  <div class="pipe">
+    <div class="step"><b>1 · Score</b> <span>each candidate on every objective (external oracles)</span></div>
+    <span class="sep">→</span>
+    <div class="step"><b>2 · Pareto dominance</b> <span>keep a pair only if one dominates; drop incomparable ones</span></div>
+    <span class="sep">→</span>
+    <div class="step"><b>3 · Standard DPO</b> <span>train on that preference set — no weighting</span></div>
+  </div>
+
+  <ul>
+    <li>No relative weight over objectives is chosen at any stage.</li>
+    <li>Excluding <em>incomparable</em> pairs leaves generative density free across the frontier — which helps preserve diversity.</li>
+    <li>Engineered for a single 8&nbsp;GB consumer GPU: <strong>&lt; 0.6 GB peak VRAM</strong> via offline reference-log-prob caching, a compact ~1.8&nbsp;M-parameter policy, and BF16 gradient accumulation.</li>
+  </ul>
+
+  <h2 id="start">Get started</h2>
   <pre><code>git clone https://github.com/malekpouri/pareto-dpo &amp;&amp; cd pareto-dpo
 python -m venv venv &amp;&amp; source venv/bin/activate
-pip install -r requirements.txt
-bash reproduce.sh</code></pre>
-  <a class="btn" href="https://github.com/malekpouri/pareto-dpo">View the code on GitHub →</a>
+pip install -r requirements.txt      # install a CUDA torch build for your GPU
+bash reproduce.sh                    # run the full seeded pipeline</code></pre>
+  <p style="color:var(--muted);font-size:.9rem">
+    Running the pipeline needs input datasets that are not bundled here (CRISPRon scores, whole-genome
+    near-match tables, a GRCh38 reference); see the docstrings in
+    <code>scripts/01_build_preference_pairs.py</code> and <code>scripts/_eval_oracles.py</code>.
+  </p>
+
+  <a class="btn" href="https://github.com/malekpouri/pareto-dpo">Browse the code →</a>
 
   <footer>
-    Released under the MIT License. Manuscript in preparation — citation to follow after publication.
+    Released under the MIT License. Manuscript in preparation — a citation will be added after publication.
   </footer>
 </div>
 </body>
